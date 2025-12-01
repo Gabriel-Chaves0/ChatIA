@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+
+jobs:
+  backend:
+    name: Backend Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install backend dependencies
+        run: uv pip install --system --no-cache .
+
+      - name: Install lint tooling
+        run: uv pip install --system --no-cache ruff
+
+      - name: Lint backend
+        run: ruff check app
+
+      - name: Build backend
+        run: python -m compileall app
+
+  frontend:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build

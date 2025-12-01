@@ -1,0 +1,81 @@
+name: Build and Push
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  ECR_BACKEND_REPO: ${{ secrets.AWS_ECR_BACKEND }}
+  ECR_FRONTEND_REPO: ${{ secrets.AWS_ECR_FRONTEND }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+      - name: Ensure ECR repositories exist
+        run: |
+          for repo in "$ECR_BACKEND_REPO" "$ECR_FRONTEND_REPO"; do
+            aws ecr describe-repositories --repository-names "$repo" >/dev/null 2>&1 || aws ecr create-repository --repository-name "$repo" >/dev/null
+          done
+
+      - name: Select tags based on branch
+        id: tags
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          TAGS=("latest")
+          if [ "$BRANCH" = "staging" ]; then
+            TAGS+=("staging")
+          elif [ "$BRANCH" = "main" ]; then
+            TAGS+=("production")
+          fi
+          printf "value=%s\n" "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
+
+      - name: Build backend image
+        run: |
+          BACKEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_BACKEND_REPO}"
+          docker build -t "$BACKEND_URI:latest" -f backend/Dockerfile backend
+          IFS=, read -ra TAGS <<<"${{ steps.tags.outputs.value }}"
+          for tag in "${TAGS[@]}"; do
+            docker tag "$BACKEND_URI:latest" "$BACKEND_URI:$tag"
+          done
+
+      - name: Build frontend image
+        run: |
+          FRONTEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_FRONTEND_REPO}"
+          docker build -t "$FRONTEND_URI:latest" -f frontend/Dockerfile frontend
+          IFS=, read -ra TAGS <<<"${{ steps.tags.outputs.value }}"
+          for tag in "${TAGS[@]}"; do
+            docker tag "$FRONTEND_URI:latest" "$FRONTEND_URI:$tag"
+          done
+
+      - name: Push images to ECR
+        run: |
+          BACKEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_BACKEND_REPO}"
+          FRONTEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_FRONTEND_REPO}"
+          IFS=, read -ra TAGS <<<"${{ steps.tags.outputs.value }}"
+          for tag in "${TAGS[@]}"; do
+            docker push "$BACKEND_URI:$tag"
+            docker push "$FRONTEND_URI:$tag"
+          done

@@ -1,0 +1,85 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  ECR_BACKEND_REPO: ${{ secrets.AWS_ECR_BACKEND }}
+  ECR_FRONTEND_REPO: ${{ secrets.AWS_ECR_FRONTEND }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  ECS_SERVICE_BACKEND: ${{ vars.ECS_SERVICE_BACKEND }}
+  ECS_SERVICE_FRONTEND: ${{ vars.ECS_SERVICE_FRONTEND }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve images by branch
+        id: images
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "$BRANCH" = "staging" ]; then
+            TAG="staging"
+          else
+            TAG="production"
+          fi
+
+          BACKEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_BACKEND_REPO}:${TAG}"
+          FRONTEND_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_FRONTEND_REPO}:${TAG}"
+
+          {
+            echo "tag=$TAG"
+            echo "backend_image=$BACKEND_IMAGE"
+            echo "frontend_image=$FRONTEND_IMAGE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Render backend task definition
+        id: task-backend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/ecs/task-backend.json
+          container-name: backend
+          image: ${{ steps.images.outputs.backend_image }}
+
+      - name: Render frontend task definition
+        id: task-frontend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/aws/ecs/task-frontend.json
+          container-name: frontend
+          image: ${{ steps.images.outputs.frontend_image }}
+
+      - name: Deploy backend service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-backend.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_BACKEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Deploy frontend service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-frontend.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_FRONTEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
