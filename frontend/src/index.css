@@ -1,0 +1,192 @@
+:root {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #0f172a;
+  background: radial-gradient(circle at 20% 20%, #eef2ff, transparent 25%),
+    radial-gradient(circle at 80% 0%, #e0f4ff, transparent 30%),
+    #f8fafc;
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.layout {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: #475569;
+  margin: 0 0 6px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  margin: 0;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.tabs button {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tabs button.active {
+  background: linear-gradient(120deg, #0ea5e9, #22c55e);
+  color: white;
+  border-color: transparent;
+}
+
+main {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 50px rgba(15, 23, 42, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.subject-field {
+  display: grid;
+  gap: 6px;
+  min-width: 240px;
+}
+
+label {
+  font-weight: 600;
+  color: #334155;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font: inherit;
+  background: #f8fafc;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.chat-window {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 16px 0;
+  background: #f8fafc;
+  min-height: 200px;
+  display: grid;
+  gap: 10px;
+}
+
+.message {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.message .role {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #475569;
+}
+
+.message.assistant {
+  border-color: #bae6fd;
+  background: #ecfeff;
+}
+
+.chat-input {
+  display: grid;
+  gap: 10px;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(120deg, #0ea5e9, #22c55e);
+  color: white;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.settings-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  max-width: 420px;
+}
+
+.muted {
+  color: #475569;
+  margin: 4px 0 0;
+}
+
+.error {
+  color: #dc2626;
+  margin-top: 8px;
+}
