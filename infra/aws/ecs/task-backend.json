@@ -1,0 +1,32 @@
+{
+  "family": "chatia-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/chatia-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/chatia-backend-task",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "000000000000.dkr.ecr.us-east-1.amazonaws.com/chatia-backend:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/chatia-backend",
+          "awslogs-region": "<AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}
