@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "educational-assistant-backend"
+version = "0.1.0"
+description = "FastAPI backend for the educational assistant"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "python-dotenv",
+  "httpx",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
