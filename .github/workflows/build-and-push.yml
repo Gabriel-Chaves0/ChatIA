@@ -62,9 +62,14 @@ jobs:
           done
 
       - name: Build frontend image
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
           FRONTEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_FRONTEND_REPO}"
-          docker build -t "$FRONTEND_URI:latest" -f frontend/Dockerfile frontend
+          docker build \
+            --build-arg VITE_API_URL="${VITE_API_URL:-http://localhost:8000}" \
+            -t "$FRONTEND_URI:latest" \
+            -f frontend/Dockerfile frontend
           IFS=, read -ra TAGS <<<"${{ steps.tags.outputs.value }}"
           for tag in "${TAGS[@]}"; do
             docker tag "$FRONTEND_URI:latest" "$FRONTEND_URI:$tag"

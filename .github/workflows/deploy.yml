@@ -57,7 +57,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: infra/aws/ecs/task-backend.json
-          container-name: backend
+          container-name: chatia-backend
           image: ${{ steps.images.outputs.backend_image }}
 
       - name: Render frontend task definition
@@ -65,7 +65,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: infra/aws/ecs/task-frontend.json
-          container-name: frontend
+          container-name: chatia-frontend
           image: ${{ steps.images.outputs.frontend_image }}
 
       - name: Deploy backend service
