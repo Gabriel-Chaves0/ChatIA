@@ -30,7 +30,7 @@
       { "name": "GEMINI_MODEL",         "value": "gemini-2.5-flash" },
       { "name": "GEMINI_API_VERSION",   "value": "v1beta" },
       { "name": "GEMINI_API_BASE",      "value": "https://generativelanguage.googleapis.com" },
-      { "name": "ALLOWED_ORIGINS",      "value": "http://localhost:5173,https://chatia-alb-1102653516.us-east-2.elb.amazonaws.com" }
+      { "name": "ALLOWED_ORIGINS",      "value": "https://chatia-alb-1102653516.us-east-2.elb.amazonaws.com" }
     ]
     }
   ]
