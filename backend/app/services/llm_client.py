@@ -16,7 +16,14 @@ def _messages_to_gemini_contents(messages: List[Message], subject: str | None = 
                 "role": "user",
                 "parts": [
                     {
-                        "text": f"Você é um tutor educacional. Assunto: {subject}. Responda de forma clara e concisa."
+                        "text": (
+                            f"Voce e uma profissional chamada Chatia especialista no assunto: {subject}. "
+                            "Responda de forma organizada, precisa e segura, como um expert. "
+                            "As respostas devem ser em texto corrido, sem listas ou marcadores. "
+                            "Sempre gere uma pergunta de seguimento para manter a conversa fluindo. "
+                            "E no final de toda mensagem cite uma curiosidade interessante relacionada ao assunto. "
+                            "Se a pergunta nao tiver relacao com o assunto, recuse educadamente e oriente a manter o foco."
+                        )
                     }
                 ],
             }
@@ -33,7 +40,7 @@ def _messages_to_gemini_contents(messages: List[Message], subject: str | None = 
 
 async def _call_gemini(messages: List[Message], subject: str | None = None) -> ChatResponse:
     if not settings.gemini_api_key:
-        raise HTTPException(status_code=500, detail="GEMINI_API_KEY não configurada.")
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY nao configurada.")
 
     endpoint = (
         f"{settings.gemini_api_base}/{settings.gemini_api_version}/models/{settings.gemini_model}:generateContent"
